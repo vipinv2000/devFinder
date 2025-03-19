@@ -1,33 +1,34 @@
+import { techStack } from '../../utils/tecStacks.js';
 import Post from '../models/post.model.js';
 import User from '../models/user.model.js';
 
 export const addpost = async (req, res) => {
-  const userId = req.user._id;
-  const { caption, image, description,visibility } = req.body;
-  try {
-    const postArray = [
-      {
-        caption,
-        image,
-        description,
-        isPrivate:visibility?true:false
-      },
-    ];
-    const post = await Post.findById(userId);
-    if (post) {
-        post.posts.push(...postArray)
-        await post.save()
-    } else {
-      const newPost = new Post({
-        user: userId,
-        posts: postArray,
-      });
-      await newPost.save()
+    const userId = req.user._id;
+    const { caption, image, description, visibility } = req.body;
+    try {
+        const postArray = [
+            {
+                caption,
+                image,
+                description,
+                isPrivate: visibility ? true : false
+            },
+        ];
+        const post = await Post.findById(userId);
+        if (post) {
+            post.posts.push(...postArray)
+            await post.save()
+        } else {
+            const newPost = new Post({
+                user: userId,
+                posts: postArray,
+            });
+            await newPost.save()
+        }
+        return res.status(201).json({ success: true, message: "Post uploaded" })
+    } catch (e) {
+        return res.status(500).json(e.message)
     }
-    return res.status(201).json({success:true,message:"Post uploaded"})
-  } catch (e) {
-    return res.status(500).json(e.message)
-  }
 };
 
 
@@ -122,5 +123,76 @@ export const acceptFollowRequest = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
+
+export const getDevelopers = async (req, res) => {
+    const userId = req.user._id; // Get logged-in user's ID
+    const { page = 1, limit = 10 } = req.query; // Default page = 1, limit = 10
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(400).json({ success: false, message: "User Not found" });
+        }
+
+        const userSkills = user.field; // Get current user's skills
+
+        // Extract all userIds from the action array (ignoring follow status)
+        const excludedUserIds = user.action.map(action => action.userId);
+
+        // Find users who have at least one matching skill, exclude the current user & users in action array
+        const matchedUsers = await User.find({
+            _id: { $ne: userId, $nin: excludedUserIds }, // Exclude current user & action users
+            field: { $in: userSkills } // Match at least one skill
+        }).skip((page - 1) * limit) // Skip previous records
+            .limit(Number(limit)); // Limit number of users
+
+        return res.status(200).json({ success: true, developers: matchedUsers });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export const searchtecStack = (req, res) => {
+    const { searchkey } = req.params;
+    try {
+        if (!searchkey) {
+            return res.status(400).json({ success: false, message: "Search key is required" });
+        }
+
+        const regex = new RegExp(searchkey, 'i');  // Case-insensitive match
+        const regexStart = new RegExp(`^${searchkey}`, 'i'); // Match from start
+
+        console.log("Regex:", regex);
+        console.log("Regex Start:", regexStart);
+
+        // Example tech stack array (Make sure you have this defined)
+
+        // Filter items that match the regex
+        const filteredResults = techStack.filter(item => regex.test(item));
+        console.log("Filtered Results:", filteredResults);
+
+        let priorityFirst = [];
+        let prioritySecond = [];
+
+        filteredResults.forEach((item) => {
+            if (regexStart.test(item)) {
+                priorityFirst.push(item);
+            } else {
+                prioritySecond.push(item);
+            }
+        });
+
+        // Remove duplicates and limit results to 12
+        const searchResult = [...new Set([...priorityFirst, ...prioritySecond])].slice(0, 12);
+
+        console.log("Search Result:", searchResult);
+
+        return res.status(200).json({ success: true, data: searchResult });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 
 
