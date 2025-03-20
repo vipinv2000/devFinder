@@ -36,6 +36,27 @@ const postSchema = new mongoose.Schema({
     },
     
   ],
+  story:[
+    {
+      caption: {
+        type: String,
+        maxlength: 25,
+        required: true,
+      },
+      image: {
+        type: String,
+        default: '',
+      },
+      likeCount: {
+        type: Number,
+        default: 0,
+      },
+      date:{
+        type:String,
+        default:new Date()
+      }
+    }
+  ],
 });
 const Post = mongoose.model('Post', postSchema);
 
