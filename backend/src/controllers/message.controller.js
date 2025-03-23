@@ -7,8 +7,15 @@ import { getReceiverSocketId, io } from '../lib/socket.js';
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
+
     const filteredUsers = await User.find({
       _id: { $ne: loggedInUserId },
+      "action": {
+        $elemMatch: {
+          userId: loggedInUserId,
+          follow: "following"
+        }
+      }
     }).select('-password');
 
     res.status(200).json(filteredUsers);
@@ -17,6 +24,7 @@ export const getUsersForSidebar = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 export const getMessages = async (req, res) => {
   try {

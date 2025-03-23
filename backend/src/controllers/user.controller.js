@@ -172,27 +172,47 @@ export const getFeedPosts = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    const followedUserIds = user.action
+    const followedUserIds = (user.action || []) // Ensure it's an array
       .filter(action => action.follow === 'following')
-      .map(action => action.userId._id);
+      .map(action => action.userId?._id);
+    console.log('followedUserIds', followedUserIds);
 
-    const followedUsersPosts = await Post.find({
-      user: { $in: followedUserIds },
-    })
-      .populate('user', 'fullName profilePic')
-      .sort({ createdAt: -1 });
+    const followedUsersPosts =
+      (await Post.find({
+        user: { $in: followedUserIds.length ? followedUserIds : [] },
+      })
+        .populate('user', 'fullName ')
+        .sort({ createdAt: -1 })) || []; // Ensure it's an array
 
-    const publicPosts = await Post.find({
-      user: { $nin: followedUserIds },
-      'posts.isPrivate': false,
-    })
-      .populate('user', 'fullName profilePic')
-      .sort({ createdAt: -1 });
+   // console.log('followedUserIds', JSON.stringify(followedUsersPosts, null, 2));
 
-    const allPosts = [...followedUsersPosts, ...publicPosts];
+    const publicPosts =
+      (await Post.find({
+        user: { $nin: followedUserIds.length ? followedUserIds : [] },
+        // Corrected query
+      })
+        .populate('user', 'fullName ')
+        .sort({ createdAt: -1 })) || []; // Ensure it's an array
+
+    //console.log('Pooooooooo', JSON.stringify(publicPosts, null, 2));
+
+    const allPublic_Postts = publicPosts
+      .map(item => ({
+        ...item, // Keep user and other details
+        posts: item.posts.filter(post => post.isPrivate === false), // Keep only public posts
+      }))
+      .filter(item => item.posts.length > 0);
+
+    //console.log('allPublic_Postts', JSON.stringify(allPublic_Postts, null, 2));
+
+    const allPosts = [...followedUsersPosts, ...allPublic_Postts];
+
+    console.log('allPosts', JSON.stringify(allPosts, null, 2));
+
 
     return res.status(200).json({ success: true, posts: allPosts });
   } catch (error) {
+    console.error('Error in getFeedPosts:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -209,23 +229,24 @@ export const getStory = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    const followedUserIds = user.action
-      .filter(action => action.follow === 'following')
+    const followedUserIds = (user.action || [])
+      .filter(action => action.follow === 'following' && action.userId)
       .map(action => action.userId._id);
 
-    console.log(followedUserIds);
+    console.log('Followed User IDs:', followedUserIds);
 
-    const followedUsersStory = await Post.find({
-      user: { $in: followedUserIds },
-    })
-      .populate('user', 'fullName profilePic')
-      .sort({ createdAt: -1 });
-    console.log(followedUsersStory);
+    const followedUsersStory = followedUserIds.length
+      ? await Post.find({ user: { $in: followedUserIds } })
+          .select('story user')
+          .populate('user', 'fullName profilePic')
+          .sort({ createdAt: -1 })
+      : [];
 
-    return res
-      .status(200)
-      .json({ success: true, story: followedUsersStory.story });
+    console.log('Followed Users Story:', followedUsersStory);
+
+    return res.status(200).json({ success: true, story: followedUsersStory });
   } catch (error) {
+    console.error('Error in getStory:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -276,10 +297,6 @@ export const getDevelopers = async (req, res) => {
 
 export const searchtecStack = (req, res) => {
   const { searchkey } = req.params;
-  console.log(
-    "reacvjhg", searchkey
-  );
-
   try {
     if (!searchkey) {
       return res

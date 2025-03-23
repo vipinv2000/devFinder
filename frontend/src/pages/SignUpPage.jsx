@@ -51,7 +51,14 @@ const SignUpPage = () => {
 
     const success = validateForm();
 
-    if (success === true) signup(formData);
+    if (success) {
+      const updatedFormData = {
+        ...formData,
+        field: selectedSkills,
+      };
+
+      signup(updatedFormData);
+    }
   };
 
   const searchQuery = async () => {
@@ -99,6 +106,9 @@ const SignUpPage = () => {
     { label: 'Backend', value: 'backend' },
     { label: 'Data Science', value: 'data-science' },
   ];
+  const handleRemoveSkill = index => {
+    setSelectedSkills(prev => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -169,8 +179,15 @@ const SignUpPage = () => {
               {selectedSkills.length !== 0 && (
                 <div className="flex flex-wrap gap-4  pb-2">
                   {selectedSkills.map((item, index) => (
-                    <div key={index} className='relative bg-gray-800 py-2 px-5 rounded-lg'>
-                      <X size={12}  className='absolute text-white bg-gray-600 rounded-full top-1 right-1' />
+                    <div
+                      key={index}
+                      className="relative bg-gray-800 py-2 px-5 rounded-lg"
+                    >
+                      <X
+                        size={12}
+                        className="absolute text-white bg-gray-600 rounded-full top-1 right-1"
+                        onClick={() => handleRemoveSkill(index)}
+                      />
                       <h1 className="text-white">{item}</h1>
                     </div>
                   ))}

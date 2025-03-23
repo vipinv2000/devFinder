@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
           userId: { type: Schema.Types.ObjectId, ref: 'User' },
           follow:{
             type:String,
-            default:"Requested"
+            default:""
           }
         },
       ], default: [],
