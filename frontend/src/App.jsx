@@ -20,6 +20,7 @@ import DevProfile from "./pages/DevProfile";
 
 import AddPost from "./pages/Addpost.jsx";
 import AddStory from "./pages/Addstory.jsx";
+import InteractedUsersList from "./pages/InteractedUsersList.jsx";
 
 
 const App = () => {
@@ -41,7 +42,7 @@ const App = () => {
   return (
     <div data-theme={theme} >
     
-    {!["/", "/add-story", "/add-post"].includes(location.pathname) && <Navbar />}
+    {!["/", "/add-story", "/add-post","/chooseDeveloper","/InteractedUsersList"].includes(location.pathname) && <Navbar />}
 
 
       <Routes>
@@ -55,6 +56,7 @@ const App = () => {
         <Route path="/" element={authUser ? <UserDashboard /> : <Navigate to="/login" />} />
         <Route path="/add-post" element={<AddPost />} />
         <Route path="/add-story" element={<AddStory />} />
+        <Route path="/InteractedUsersList" element={<InteractedUsersList />} />
 
       </Routes>
 

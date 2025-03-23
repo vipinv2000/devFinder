@@ -1,40 +1,63 @@
-import { useState } from "react";
-import { useAuthStore } from "../store/useAuthStore";
-import { toast } from "react-hot-toast";
-import axios from "axios";
-import { FaLock, FaGlobe } from "react-icons/fa";
+import { useState } from 'react';
+import { useAuthStore } from '../store/useAuthStore';
+import { toast } from 'react-hot-toast';
+import { FaLock, FaGlobe } from 'react-icons/fa';
+import { axiosInstance } from '../lib/axios';
+import { useNavigate } from 'react-router-dom';
 
 const AddPost = () => {
   const { authUser } = useAuthStore();
-  const [caption, setCaption] = useState("");
+  const [caption, setCaption] = useState('');
   const [image, setImage] = useState(null);
-  const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState("public"); // Default: Public
+  const [description, setDescription] = useState('');
+  const [visibility, setVisibility] = useState('public'); // Default: Public
+  const [formData, setFormData] = useState({
+    caption:'',
+    description:'',
+    image:'',
+    visibility:''
+  });
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  // Handle Image Upload
+  const handleImageChange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      setImage(base64Image);
+    };
+  };
+     console.log("vis",visibility);
+     
+  // Handle Form Submission
+  const handleSubmit = async e => {
     e.preventDefault();
 
-    if (!caption.trim() || !image) {
-      return toast.error("Caption and Image are required!");
-    }
+   
 
-    const formData = new FormData();
-    formData.append("caption", caption);
-    formData.append("image", image);
-    formData.append("description", description);
-    formData.append("visibility", visibility === "private"); // Boolean value for backend
-
+  
     try {
-      await axios.post("/api/posts", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("Post added successfully!");
-      setCaption("");
-      setImage(null);
-      setDescription("");
-      setVisibility("public");
+      const finalData = { 
+        caption: formData.caption, 
+        description: formData.description, 
+        image: image, 
+        visibility: visibility 
+      };
+      console.log("finaldata",finalData);
+      
+      await axiosInstance.post('/userdash/addpost', finalData);
+
+      toast.success('Post added successfully!');
+      setCaption('');
+      setImage('');
+      setDescription('');
+      setVisibility('public');
+      navigate('/')
     } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong");
+      toast.error(error.response?.data?.message || 'Something went wrong');
     }
   };
 
@@ -51,8 +74,8 @@ const AddPost = () => {
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
             rows="3"
             placeholder="Write a caption..."
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
+            value={formData.caption}
+            onChange={e => setFormData({ ...formData, caption: e.target.value })}
           />
 
           {/* Description */}
@@ -60,8 +83,8 @@ const AddPost = () => {
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-white"
             rows="2"
             placeholder="Write a description (optional)..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={formData.description}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
           />
 
           {/* Image Upload */}
@@ -69,7 +92,7 @@ const AddPost = () => {
             type="file"
             accept="image/*"
             className="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white cursor-pointer"
-            onChange={(e) => setImage(e.target.files[0])}
+            onChange={handleImageChange}
           />
 
           {/* Visibility Toggle */}
@@ -78,10 +101,12 @@ const AddPost = () => {
             <button
               type="button"
               className="flex items-center gap-2 text-white p-2 rounded-lg transition bg-blue-600 hover:bg-blue-700"
-              onClick={() => setVisibility(visibility === "public" ? "private" : "public")}
+              onClick={() =>
+                setVisibility(visibility === 'public' ? 'private' : 'public')
+              }
             >
-              {visibility === "public" ? <FaGlobe /> : <FaLock />}
-              {visibility === "public" ? "Public" : "Private"}
+              {visibility === 'public' ? <FaGlobe /> : <FaLock />}
+              {visibility === 'public' ? 'Public' : 'Private'}
             </button>
           </div>
 

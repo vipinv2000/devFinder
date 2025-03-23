@@ -3,17 +3,27 @@ import { Request_Mode } from '../../utils/Request_methods.js';
 import { techStack } from '../../utils/tecStacks.js';
 import Post from '../models/post.model.js';
 import User from '../models/user.model.js';
+import cloudinary from '../lib/cloudinary.js';
 
 export const addpost = async (req, res) => {
   const userId = req.user._id;
   const { caption, image, description, visibility } = req.body;
+  console.log("rfr",req.body);
+  
 
   try {
+      let imageUrl;
+        if (image) {
+          // Upload base64 image to cloudinary
+          const uploadResponse = await cloudinary.uploader.upload(image);
+          imageUrl = uploadResponse.secure_url;
+        }
+        
     const postData = {
       caption,
-      image,
+      image:imageUrl,
       description,
-      isPrivate: visibility ? true : false,
+      isPrivate: (visibility=='public'?true:false) ,
       date: new Date(),
     };
 
@@ -33,6 +43,8 @@ export const addpost = async (req, res) => {
 
     return res.status(201).json({ success: true, message: 'Post uploaded' });
   } catch (error) {
+    console.log(error);
+    
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -40,11 +52,20 @@ export const addpost = async (req, res) => {
 export const addStory = async (req, res) => {
   const userId = req.user._id;
   const { caption, image } = req.body;
+  console.log("req.body",req.body);
+  
 
   try {
+    
+        let imageUrl;
+        if (image) {
+        
+          const uploadResponse = await cloudinary.uploader.upload(image);
+          imageUrl = uploadResponse.secure_url;
+        }
     const storyData = {
       caption,
-      image,
+      image:imageUrl,
       date: new Date(),
     };
 
@@ -186,13 +207,15 @@ export const getFeedPosts = async (req, res) => {
 
    // console.log('followedUserIds', JSON.stringify(followedUsersPosts, null, 2));
 
-    const publicPosts =
-      (await Post.find({
-        user: { $nin: followedUserIds.length ? followedUserIds : [] },
-        // Corrected query
-      })
-        .populate('user', 'fullName ')
-        .sort({ createdAt: -1 })) || []; // Ensure it's an array
+   const publicPosts =
+  (await Post.find({
+    user: { 
+      $nin: followedUserIds.length ? followedUserIds : [], 
+      $ne: userId // Exclude the current user's posts
+    }
+  })
+    .populate('user', 'fullName ')
+    .sort({ createdAt: -1 })) || [];
 
     //console.log('Pooooooooo', JSON.stringify(publicPosts, null, 2));
 
@@ -404,3 +427,24 @@ export const getDeveloperProfile = async (req, res) => {
   }
 };
 
+export const getAccountInteractions= async (req,res)=>{
+  const userId=req.user._id
+  try {
+    const user = await User.findById(userId).populate('action.userId').select('-password')
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
+    }
+ const interactedUsers=user.action
+
+ console.log("interactedUsers",JSON.stringify(interactedUsers,null ,2))
+ 
+
+ return res.status(200).json({success:true,interactedUsers})
+ 
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+    
+  }
+}

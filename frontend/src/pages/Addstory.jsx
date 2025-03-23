@@ -1,29 +1,45 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import { axiosInstance } from "../lib/axios";
+import { useNavigate } from "react-router-dom";
 
 const AddStory = () => {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
+  const [formData, setFormData] = useState({
+    caption:'',
+    image:''
+  });
+  const navigate=useNavigate()
 
+  const handleImageChange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      setImage(base64Image);
+    };
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!caption.trim() || !image) {
-      return toast.error("Caption and Image are required!");
-    }
-
-    const formData = new FormData();
-    formData.append("caption", caption);
-    formData.append("image", image);
-
+    
+  
     try {
-      await axios.post("/api/stories", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const finalData = { 
+        caption: formData.caption, 
+        image: image, 
+      
+      };
+      console.log("finaldata",finalData);
+      await axiosInstance.post("/userdash/addStory", finalData);
       toast.success("Story added successfully!");
       setCaption("");
-      setImage(null);
+      setImage('null');
+      navigate('/')
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     }
@@ -38,16 +54,16 @@ const AddStory = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+            className="w-full p-3 text-black border rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
             placeholder="Story Caption"
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
+            value={formData.caption}
+            onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
           />
           <input
             type="file"
             accept="image/*"
-            className="w-full p-2 border rounded-lg"
-            onChange={(e) => setImage(e.target.files[0])}
+            className="w-full p-2 border border-gray-600 rounded-lg bg-gray-200 text-black cursor-pointer"
+            onChange={handleImageChange}
           />
           <button
             type="submit"

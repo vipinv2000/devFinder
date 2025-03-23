@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FaCommentDots, FaSearch, FaUser, FaUsers, FaPlusCircle, FaHome } from "react-icons/fa";
 import { MdAddBox } from "react-icons/md"; // Modern Add Post icon
 import { axiosInstance } from "../lib/axios";
+import Feedpost from "../components/Feedpost";
 
 const UserDashboard = () => {
   const [stories, setStories] = useState([]);
@@ -104,9 +105,21 @@ const UserDashboard = () => {
   }, []);
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen p-6 relative">
+    <div className="bg-gray-900 text-white min-h-screen p-2 relative">
 
-      <div className="relative flex items-center gap-4 overflow-x-auto p-4 border-b border-gray-700 bg-gray-800 rounded-md shadow-md mb-6 rounded-b-xl">
+  <h1 className="text-xl md:text-2xl font-extrabold font-serif italic text-white ml-4 mt-4 flex items-center gap-2 pb-2">
+  <span className="text-blue-400">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V6a2 2 0 012-2h12a2 2 0 012 2v2m-8 4v8m-4-4h8m-6-8h4m-6 4h8M4 16v2m16-2v2M4 12v2m16-2v2M4 8v2m16-2v2" />
+    </svg>
+  </span>
+  <span className="bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">
+    TechHive
+  </span>
+</h1>
+
+
+      <div className="relative flex items-center gap-4 overflow-x-auto p-4 border-b border-gray-500 bg-gray-600  shadow-md mb-6 rounded-xl">
         <Link to="/add-story" className="flex flex-col items-center">
           <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center">
             <FaPlusCircle className="text-3xl text-blue-500" />
@@ -116,7 +129,7 @@ const UserDashboard = () => {
 
         {stories.map((story, index) => (
           <div key={index} className="flex flex-col items-center">
-            <img src={story.image} alt="story" className="w-16 h-16 rounded-full border-2 border-blue-500" />
+            <img src={story.image} alt="story" className="w-16 h-16 rounded-full border-2 border-black" />
             <p className="text-sm">{story.caption}</p>
           </div>
         ))}
@@ -128,82 +141,46 @@ const UserDashboard = () => {
       <div>
       {posts.map((post) =>
   post.posts?.map((singlePost, index) => (
-    <div
-      key={index}
-      className={`mb-6 p-5 rounded-lg shadow-md border ${
-        singlePost.isPrivate ? "border-red-500" : "border-gray-700"
-      } bg-gray-800`}
-    >
-      {/* User Info */}
-      <div className="flex items-center gap-3">
-        <img
-          src={post.user?.profilePic || "https://via.placeholder.com/40"}
-          alt="user"
-          className="w-12 h-12 rounded-full border border-gray-600"
-        />
-        <div>
-          <h3 className="font-semibold text-lg">{post.user?.fullName || "Unknown User"}</h3>
-          <p className="text-xs text-gray-400">{new Date(singlePost.date).toLocaleString()}</p>
-        </div>
-      </div>
-
-      {/* Private Post Indicator */}
-      {singlePost.isPrivate && (
-        <div className="flex items-center text-red-400 mt-2">
-          🔒 <span className="ml-1 text-sm">Private Post</span>
-        </div>
-      )}
-
-      <img
-        src={singlePost.image}
-        alt="post"
-        className="w-full h-auto max-h-[500px] rounded-lg object-contain"
-      />
-
-      <p className="text-xl font-extrabold mt-3 text-blue-400">{singlePost.caption}</p>
-      <p className="text-sm text-gray-300 mt-1">{singlePost.description}</p>
-
-      <button
-        onClick={() => handleLike(singlePost._id)}
-        className="flex items-center gap-2 mt-3 text-red-400 hover:text-red-500"
-      >
-        ❤️ {singlePost.likes || 0} Likes
-      </button>
-    </div>
+    <Feedpost singlePost={singlePost} post={post} key={index}/>
   ))
 )}
 
 
       </div>
+      <Link to="/chooseDeveloper" className="text-black text-2xl hover:text-blue-300">
+      <div className="w-20 h-20 rounded-2xl fixed right-10  bottom-28 cursor-pointer " >
+  <img src="/search.gif" className="w-15 h-15 rounded-[50%]" alt="" />
+  </div>
+        </Link>
 
     
       <div
-        className={`fixed bottom-0 left-0 right-0 bg-blue-900 p-4 flex justify-evenly rounded-3xl items-center transition-transform duration-300 ${
+        className={`fixed bottom-0 left-0 right-0 bg-white p-4 flex justify-evenly rounded-3xl items-center transition-transform duration-300 mx-4 my-2 ${
           showFooter ? "translate-y-0" : "translate-y-full"
         }`}
       >
         
 
-        <Link to="/" className="text-white text-2xl hover:text-blue-300">
+        <Link to="/" className="text-black text-2xl hover:text-blue-300">
           <FaHome/>
         </Link>
 
-        <Link to="/chat" className="text-white text-2xl hover:text-blue-300">
+        <Link to="/chat" className="text-black text-2xl hover:text-blue-300">
           <FaCommentDots />
         </Link>
 
         {/* Centered Add Post Button */}
         <Link
           to="/add-post"
-          className="bg-blue-500 text-white p-3 rounded-full shadow-lg text-4xl hover:bg-blue-600"
+          className="bg-blue-100 text-black p-3 rounded-full shadow-lg text-4xl hover:bg-green-300  "
         >
           <MdAddBox />
         </Link>
 
-        <Link to="/friends" className="text-white text-2xl hover:text-blue-300">
+        <Link to="/friends" className="text-black text-2xl hover:text-blue-300">
           <FaUsers />
         </Link>
-        <Link to="/profile" className="text-white text-2xl hover:text-blue-300">
+        <Link to="/profile" className="text-black text-2xl hover:text-blue-300">
           <FaUser />
         </Link>
       </div>
