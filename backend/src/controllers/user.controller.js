@@ -351,7 +351,7 @@ export const getDeveloperProfile = async (req, res) => {
 
     let postsWithLikeStatus = [];
 
-    const userData = await User.findOne({ _id: devId })
+    const userData = await User.findOne({ _id: devId },"-password")
 
     if (!userData) {
       return res.status(404).json({ success: false, message: "User Not Found" });
