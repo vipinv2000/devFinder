@@ -13,6 +13,12 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
+  developersLis: null,
+  totalDevelopers: null,
+  developerDetails: null,
+  followingCount: null,
+  followersCount: null,
+  developerposts: null,
 
   checkAuth: async () => {
     try {
@@ -102,4 +108,33 @@ export const useAuthStore = create((set, get) => ({
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
   },
+  getDeveloperToDisplay: async (page = 1) => {
+    try {
+      const res = await axiosInstance.get(`/userdash/getDevelopers?page=${page}`);
+      console.log("List of users", res.data.developers);
+
+      set({
+        developersList: res.data.developers,
+        totalDevelopers: res.data.totalDevelopers // Store total count
+      });
+    } catch (error) {
+      console.log("Error in fetching developers:", error);
+    }
+  },
+  fetchDeveloperDetailes: async (devId) => {
+    try {
+      const res = await axiosInstance.get(`/userdash/getDeveloperProfile/${devId}`);
+      console.log("Developer Details", res.data);
+      set({
+        developerDetails: res.data.user,
+        followingCount: res.data.followingCount,
+        followersCount: res.data.followersCount,
+        developerposts: res.data.posts,
+      });
+    } catch (error) {
+      console.log("Error in fetching developers:", error);
+    }
+  }
+
+
 }));

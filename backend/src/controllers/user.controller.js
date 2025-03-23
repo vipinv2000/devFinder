@@ -253,39 +253,50 @@ export const getStory = async (req, res) => {
 
 export const getDevelopers = async (req, res) => {
   const userId = req.user._id; // Get logged-in user's ID
-  const { page = 1, limit = 10 } = req.query; // Default page = 1, limit = 10
+  const { page = 1, limit = 4 } = req.query; // Default values
+  console.log("called");
 
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'User Not found' });
+      return res.status(400).json({ success: false, message: 'User Not found' });
     }
 
     const userSkills = user.field; // Get current user's skills
-
-    // Extract all userIds from the action array (ignoring follow status)
     const excludedUserIds = user.action.map(action => action.userId);
 
-    // Find users who have at least one matching skill, exclude the current user & users in action array
-    const matchedUsers = await User.find({
-      _id: { $ne: userId, $nin: excludedUserIds }, // Exclude current user & action users
-      field: { $in: userSkills }, // Match at least one skill
-    })
-      .skip((page - 1) * limit) // Skip previous records
-      .limit(Number(limit)); // Limit number of users
+    // Count total matching developers (without pagination)
+    const totalDevelopers = await User.countDocuments({
+      _id: { $ne: userId, $nin: excludedUserIds },
+      field: { $in: userSkills },
+    });
 
-    return res.status(200).json({ success: true, developers: matchedUsers });
+    // Fetch paginated developers
+    const matchedUsers = await User.find(
+      {
+        _id: { $ne: userId, $nin: excludedUserIds },
+        field: { $in: userSkills },
+      },
+      "fullName email profilePic field _id" // <-- Select only these fields
+    )
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+
+    return res.status(200).json({
+      success: true,
+      developers: matchedUsers,
+      totalDevelopers // Send total count
+    });
+
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
+
 export const searchtecStack = (req, res) => {
   const { searchkey } = req.params;
-  console.log('reacvjhg', searchkey);
-
   try {
     if (!searchkey) {
       return res
@@ -328,3 +339,68 @@ export const searchtecStack = (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getDeveloperProfile = async (req, res) => {
+  const { devId } = req.params;
+  const userId = req.user._id;
+
+  
+
+
+  try {
+
+    let postsWithLikeStatus = [];
+
+    const userData = await User.findOne({ _id: devId })
+
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "User Not Found" });
+    }
+
+    const postData = await Post.findOne({ user: devId }).populate("user");
+
+    if (postData) {
+      var isFollowing = userData.action.some(
+        (action) => action.userId.toString() === userId.toString() && action.follow === "following"
+      );
+      const filteredPosts = postData.posts.filter(post => !post.isPrivate || isFollowing);
+       postsWithLikeStatus = filteredPosts.map(post => ({
+        ...post.toObject(),
+        isLiked: post.like.includes(userId),
+      }));
+
+    }
+
+    console.log("Developer Data:", postData);
+
+
+    const followingCount = userData.action.filter(
+      (item) => item.follow === "pending" || item.follow === "following"
+    ).length;
+
+    console.log("Following Count:", followingCount);
+
+
+    const followersCount = await User.countDocuments({
+      "action.userId": devId,
+      "action.follow": "following"
+    });
+
+    console.log("Followers Count:", followersCount);
+
+
+    return res.status(200).json({
+      success: true,
+      user: userData,
+      posts: postsWithLikeStatus,
+      followingCount,
+      followersCount,
+      isfriend : isFollowing ? true : false
+    });
+
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+

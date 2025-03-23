@@ -8,6 +8,10 @@ const postSchema = new mongoose.Schema({
   },
   posts: [
     {
+      _id: {
+        type: Schema.Types.ObjectId,
+        auto: true,
+      },
       caption: {
         type: String,
         maxlength: 25,
@@ -21,23 +25,29 @@ const postSchema = new mongoose.Schema({
         type: String,
         default: '',
       },
-      likeCount: {
-        type: Number,
-        default: 0,
+      like: [
+        {
+          type: Schema.Types.ObjectId,
+          default: [],
+        }
+      ],
+      isPrivate: {
+        type: Boolean,
+        default: false
       },
-      isPrivate:{
-        type:Boolean,
-        default:false
-      },
-      date:{
-        type:String,
-        default:new Date()
+      date: {
+        type: String,
+        default: new Date()
       }
     },
-    
+
   ],
-  story:[
+  story: [
     {
+      _id: {
+        type: Schema.Types.ObjectId,
+        auto: true,
+      },
       caption: {
         type: String,
         maxlength: 25,
@@ -47,13 +57,13 @@ const postSchema = new mongoose.Schema({
         type: String,
         default: '',
       },
-      likeCount: {
-        type: Number,
-        default: 0,
-      },
-      date:{
-        type:String,
-        default:new Date()
+      like: [{
+        type: Schema.Types.ObjectId,
+        default: [],
+      }],
+      date: {
+        type: String,
+        default: new Date()
       }
     }
   ],

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Camera, Mail, User } from "lucide-react";
+import * as nsfwjs from 'nsfwjs';
 
 const ProfilePage = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
@@ -9,17 +10,33 @@ const ProfilePage = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
     const reader = new FileReader();
-
     reader.readAsDataURL(file);
-
+  
     reader.onload = async () => {
       const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
-      console.log(base64Image);
-      
+  
+      // Load NSFWJS model
+      const img = new Image();
+      img.src = base64Image;
+      img.onload = async () => {
+        const model = await nsfwjs.load();
+        const predictions = await model.classify(img);
+  
+        console.log(predictions);
+  
+        // Check if the image is NSFW
+        if (predictions.some(p => (p.className === "Porn" || p.className === "Hentai") && p.probability > 0.7)) {
+          alert("18+ content detected! Please upload a different image.");
+          return;
+        }
+  
+        // If safe, update profile
+        setSelectedImg(base64Image);
+        await updateProfile({ profilePic: base64Image });
+        console.log(base64Image);
+      };
     };
   };
 
