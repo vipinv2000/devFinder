@@ -16,29 +16,13 @@ const ProfilePage = () => {
   
     reader.onload = async () => {
       const base64Image = reader.result;
-  
-      // Load NSFWJS model
-      const img = new Image();
-      img.src = base64Image;
-      img.onload = async () => {
-        const model = await nsfwjs.load();
-        const predictions = await model.classify(img);
-  
-        console.log(predictions);
-  
-        // Check if the image is NSFW
-        if (predictions.some(p => (p.className === "Porn" || p.className === "Hentai") && p.probability > 0.7)) {
-          alert("18+ content detected! Please upload a different image.");
-          return;
-        }
-  
-        // If safe, update profile
+
         setSelectedImg(base64Image);
         await updateProfile({ profilePic: base64Image });
         console.log(base64Image);
       };
     };
-  };
+
 
   return (
     <div className="h-screen pt-20">

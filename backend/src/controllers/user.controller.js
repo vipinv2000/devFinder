@@ -8,22 +8,21 @@ import cloudinary from '../lib/cloudinary.js';
 export const addpost = async (req, res) => {
   const userId = req.user._id;
   const { caption, image, description, visibility } = req.body;
-  console.log("rfr",req.body);
-  
+  console.log('rfr', req.body);
 
   try {
-      let imageUrl;
-        if (image) {
-          // Upload base64 image to cloudinary
-          const uploadResponse = await cloudinary.uploader.upload(image);
-          imageUrl = uploadResponse.secure_url;
-        }
-        
+    let imageUrl;
+    if (image) {
+      // Upload base64 image to cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
+    }
+
     const postData = {
       caption,
-      image:imageUrl,
+      image: imageUrl,
       description,
-      isPrivate: (visibility=='public'?true:false) ,
+      isPrivate: visibility == 'public' ? true : false,
       date: new Date(),
     };
 
@@ -44,7 +43,7 @@ export const addpost = async (req, res) => {
     return res.status(201).json({ success: true, message: 'Post uploaded' });
   } catch (error) {
     console.log(error);
-    
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -52,20 +51,17 @@ export const addpost = async (req, res) => {
 export const addStory = async (req, res) => {
   const userId = req.user._id;
   const { caption, image } = req.body;
-  console.log("req.body",req.body);
-  
+  console.log('req.body', req.body);
 
   try {
-    
-        let imageUrl;
-        if (image) {
-        
-          const uploadResponse = await cloudinary.uploader.upload(image);
-          imageUrl = uploadResponse.secure_url;
-        }
+    let imageUrl;
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
+    }
     const storyData = {
       caption,
-      image:imageUrl,
+      image: imageUrl ? imageUrl : '',
       date: new Date(),
     };
 
@@ -193,7 +189,7 @@ export const getFeedPosts = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    const followedUserIds = (user.action || []) // Ensure it's an array
+    const followedUserIds = (user.action || []) 
       .filter(action => action.follow === 'following')
       .map(action => action.userId?._id);
     console.log('followedUserIds', followedUserIds);
@@ -202,36 +198,35 @@ export const getFeedPosts = async (req, res) => {
       (await Post.find({
         user: { $in: followedUserIds.length ? followedUserIds : [] },
       })
-        .populate('user', 'fullName ')
-        .sort({ createdAt: -1 })) || []; // Ensure it's an array
+        .populate('user', 'fullName profilePic')
+        .sort({ createdAt: -1 })) || []; 
 
-   // console.log('followedUserIds', JSON.stringify(followedUsersPosts, null, 2));
+   
 
-   const publicPosts =
-  (await Post.find({
-    user: { 
-      $nin: followedUserIds.length ? followedUserIds : [], 
-      $ne: userId // Exclude the current user's posts
-    }
-  })
-    .populate('user', 'fullName ')
-    .sort({ createdAt: -1 })) || [];
+    const publicPosts =
+      (await Post.find({
+        user: {
+          $nin: followedUserIds.length ? followedUserIds : [],
+          $ne: userId, 
+        },
+      })
+        .populate('user', 'fullName')
+        .sort({ createdAt: -1 })) || [];
 
-    //console.log('Pooooooooo', JSON.stringify(publicPosts, null, 2));
+  
 
     const allPublic_Postts = publicPosts
       .map(item => ({
-        ...item, // Keep user and other details
-        posts: item.posts.filter(post => post.isPrivate === false), // Keep only public posts
+        ...item, 
+        posts: item.posts.filter(post => post.isPrivate === false), 
       }))
       .filter(item => item.posts.length > 0);
 
-    //console.log('allPublic_Postts', JSON.stringify(allPublic_Postts, null, 2));
+    
 
     const allPosts = [...followedUsersPosts, ...allPublic_Postts];
 
     console.log('allPosts', JSON.stringify(allPosts, null, 2));
-
 
     return res.status(200).json({ success: true, posts: allPosts });
   } catch (error) {
@@ -277,12 +272,14 @@ export const getStory = async (req, res) => {
 export const getDevelopers = async (req, res) => {
   const userId = req.user._id; // Get logged-in user's ID
   const { page = 1, limit = 4 } = req.query; // Default values
-  console.log("called");
+  console.log('called');
 
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(400).json({ success: false, message: 'User Not found' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'User Not found' });
     }
 
     const userSkills = user.field; // Get current user's skills
@@ -300,23 +297,20 @@ export const getDevelopers = async (req, res) => {
         _id: { $ne: userId, $nin: excludedUserIds },
         field: { $in: userSkills },
       },
-      "fullName email profilePic field _id" // <-- Select only these fields
+      'fullName email profilePic field _id' // <-- Select only these fields
     )
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-
     return res.status(200).json({
       success: true,
       developers: matchedUsers,
-      totalDevelopers // Send total count
+      totalDevelopers, // Send total count
     });
-
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const searchtecStack = (req, res) => {
   const { searchkey } = req.params;
@@ -367,50 +361,48 @@ export const getDeveloperProfile = async (req, res) => {
   const { devId } = req.params;
   const userId = req.user._id;
 
-  
-
-
   try {
-
     let postsWithLikeStatus = [];
 
-    const userData = await User.findOne({ _id: devId })
+    const userData = await User.findOne({ _id: devId });
 
     if (!userData) {
-      return res.status(404).json({ success: false, message: "User Not Found" });
+      return res
+        .status(404)
+        .json({ success: false, message: 'User Not Found' });
     }
 
-    const postData = await Post.findOne({ user: devId }).populate("user");
+    const postData = await Post.findOne({ user: devId }).populate('user');
 
     if (postData) {
       var isFollowing = userData.action.some(
-        (action) => action.userId.toString() === userId.toString() && action.follow === "following"
+        action =>
+          action.userId.toString() === userId.toString() &&
+          action.follow === 'following'
       );
-      const filteredPosts = postData.posts.filter(post => !post.isPrivate || isFollowing);
-       postsWithLikeStatus = filteredPosts.map(post => ({
+      const filteredPosts = postData.posts.filter(
+        post => !post.isPrivate || isFollowing
+      );
+      postsWithLikeStatus = filteredPosts.map(post => ({
         ...post.toObject(),
         isLiked: post.like.includes(userId),
       }));
-
     }
 
-    console.log("Developer Data:", postData);
-
+    console.log('Developer Data:', postData);
 
     const followingCount = userData.action.filter(
-      (item) => item.follow === "pending" || item.follow === "following"
+      item => item.follow === 'pending' || item.follow === 'following'
     ).length;
 
-    console.log("Following Count:", followingCount);
-
+    console.log('Following Count:', followingCount);
 
     const followersCount = await User.countDocuments({
-      "action.userId": devId,
-      "action.follow": "following"
+      'action.userId': devId,
+      'action.follow': 'following',
     });
 
-    console.log("Followers Count:", followersCount);
-
+    console.log('Followers Count:', followersCount);
 
     return res.status(200).json({
       success: true,
@@ -418,33 +410,66 @@ export const getDeveloperProfile = async (req, res) => {
       posts: postsWithLikeStatus,
       followingCount,
       followersCount,
-      isfriend : isFollowing ? true : false
+      isfriend: isFollowing ? true : false,
     });
-
   } catch (error) {
-    console.error("Error fetching profile:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error fetching profile:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-export const getAccountInteractions= async (req,res)=>{
-  const userId=req.user._id
+export const getAccountInteractions = async (req, res) => {
+  const userId = req.user._id;
   try {
-    const user = await User.findById(userId).populate('action.userId').select('-password')
+    const user = await User.findById(userId)
+      .populate('action.userId')
+      .select('-password');
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: 'User not found' });
     }
- const interactedUsers=user.action
+    const interactedUsers = user.action;
 
- console.log("interactedUsers",JSON.stringify(interactedUsers,null ,2))
- 
+    console.log('interactedUsers', JSON.stringify(interactedUsers, null, 2));
 
- return res.status(200).json({success:true,interactedUsers})
- 
+    return res.status(200).json({ success: true, interactedUsers });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
-    
   }
-}
+};
+export const likeFunction = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user.id; // Extract user ID from token
+
+    // Find the document containing the post
+    const postDocument = await Post.findOne({ 'posts._id': postId });
+
+    if (!postDocument) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Find the specific post within the array
+    const post = postDocument.posts.find((p) => p._id.toString() === postId);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const likeIndex = post.like.indexOf(userId);
+
+    if (likeIndex === -1) {
+      // Add user ID to likes
+      post.like.push(userId);
+    } else {
+      // Remove user ID from likes
+      post.like.splice(likeIndex, 1);
+    }
+
+    await postDocument.save();
+    res.status(200).json({ message: 'Like updated',success:true, likes: post.like.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

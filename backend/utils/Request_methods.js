@@ -1,3 +1,5 @@
+import User from '../src/models/user.model.js';
+
 export const Request_Mode = async (slabel, rlabel, req, res) => {
   const userId = req.user._id;
   const { id, type } = req.params;

@@ -45,11 +45,11 @@ const postSchema = new mongoose.Schema({
     {
       _id: {
         type: Schema.Types.ObjectId,
-        auto: true,
+        ref: "User",
       },
       caption: {
         type: String,
-        maxlength: 25,
+        maxlength: 100,
         required: true,
       },
       image: {
