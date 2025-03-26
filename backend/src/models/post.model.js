@@ -33,14 +33,13 @@ const postSchema = new mongoose.Schema({
       ],
       isPrivate: {
         type: Boolean,
-        default: false
+        default: false,
       },
       date: {
         type: String,
-        default: new Date()
-      }
+        default: new Date(),
+      },
     },
-
   ],
   story: [
     {
@@ -57,15 +56,12 @@ const postSchema = new mongoose.Schema({
         type: String,
         default: '',
       },
-      like: [{
-        type: Schema.Types.ObjectId,
-        default: [],
-      }],
+
       date: {
         type: String,
-        default: new Date()
-      }
-    }
+        default: new Date(),
+      },
+    },
   ],
 });
 const Post = mongoose.model('Post', postSchema);

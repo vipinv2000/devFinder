@@ -19,6 +19,10 @@ export const useAuthStore = create((set, get) => ({
   followingCount: null,
   followersCount: null,
   developerposts: null,
+  isfriend: null,
+  following_developers_list: null,
+  followers_list: null,
+  refresh: false,
 
   checkAuth: async () => {
     try {
@@ -130,11 +134,50 @@ export const useAuthStore = create((set, get) => ({
         followingCount: res.data.followingCount,
         followersCount: res.data.followersCount,
         developerposts: res.data.posts,
+        status: res.data.status,
+        isYou: res.data.isYou
       });
     } catch (error) {
       console.log("Error in fetching developers:", error);
     }
+  },
+
+  get_Folowing_Developers: async (devId) => {
+    try {
+      const res = await axiosInstance.get(`/userdash/getfollowingDevelopers/${devId}`);
+      console.log("following Details", res.data.GetFollwingdev);
+      set({
+        following_developers_list: res.data.GetFollwingdev
+      });
+    } catch (error) {
+      console.log("Error in fetching developers:", error);
+    }
+  },
+  get_Followers_Developers: async (devId) => {
+    try {
+      const res = await axiosInstance.get(`/userdash/getfollowers/${devId}`);
+      console.log("followers", res.data.followers);
+      set({
+        followers_list: res.data.followers
+      });
+    } catch (error) {
+      console.log("Error in fetching developers:", error);
+    }
+  },
+  Do_User_Post_Like: async (postId, collectionId) => {
+    try {
+      const res = await axiosInstance.get(`/userdash/DoPostLike/${postId}/${collectionId}`);
+
+    } catch (error) {
+      console.log("Error in fetching developers:", error);
+    }
+  },
+  send_Follow_Request_To_deVeloper: async(devId,type) => {
+    try {
+      const res = await axiosInstance.patch(`/userdash/requestFollow/${devId}/${type}`);
+
+    } catch (error) {
+      console.log("Error in fetching developers:", error);
+    }
   }
-
-
 }));
