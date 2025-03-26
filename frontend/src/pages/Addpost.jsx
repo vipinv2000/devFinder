@@ -105,8 +105,8 @@ const AddPost = () => {
                 setVisibility(visibility === 'public' ? 'private' : 'public')
               }
             >
-              {visibility === 'public' ? <FaGlobe /> : <FaLock />}
-              {visibility === 'public' ? 'Public' : 'Private'}
+              {visibility === 'public' ? <FaLock /> : <FaGlobe />}
+              {visibility === 'public' ? 'Private' : 'Public'}
             </button>
           </div>
 

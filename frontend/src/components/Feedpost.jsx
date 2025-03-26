@@ -26,10 +26,12 @@ const Feedpost = ({ singlePost, post, isprofile = false, toggleRefresh }) => {
 
     // Trigger refresh if needed
     toggleRefresh.setRefresh((prev) => !prev);
+
   };
 
   return (
     <div
+
       className={`${isprofile ? "w-[50%]" : "w-full"} mb-6 p-5 rounded-lg shadow-md border ${singlePost.isPrivate ? "border-green-500" : "border-gray-700"
         } bg-gray-800 relative flex flex-col justify-between`}
     >
@@ -61,11 +63,13 @@ const Feedpost = ({ singlePost, post, isprofile = false, toggleRefresh }) => {
         )}
 
         {/* Post Image */}
+
         <img
           src={singlePost.image}
           alt="post"
           className="w-full h-auto max-h-[500px] rounded-lg object-contain"
         />
+
 
         {!isprofile && <p className="text-xl font-extrabold mt-3 text-blue-400">{singlePost.caption}</p>}
 
@@ -110,6 +114,7 @@ const Feedpost = ({ singlePost, post, isprofile = false, toggleRefresh }) => {
 
         <p>{likesCount} Likes</p>
       </div>
+
     </div>
   );
 };

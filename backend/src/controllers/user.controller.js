@@ -9,8 +9,6 @@ import { json } from 'stream/consumers';
 export const addpost = async (req, res) => {
   const userId = req.user._id;
   const { caption, image, description, visibility } = req.body;
-  console.log("rfr", req.body);
-
 
   try {
     let imageUrl;
@@ -24,7 +22,8 @@ export const addpost = async (req, res) => {
       caption,
       image: imageUrl,
       description,
-      isPrivate: (visibility == 'public' ? true : false),
+      isPrivate: visibility == 'public' ? true : false,
+
       date: new Date(),
     };
 
@@ -53,11 +52,10 @@ export const addpost = async (req, res) => {
 export const addStory = async (req, res) => {
   const userId = req.user._id;
   const { caption, image } = req.body;
-  console.log("req.body", req.body);
 
+  console.log('req.body', req.body);
 
   try {
-
     let imageUrl;
     if (image) {
 
@@ -66,7 +64,8 @@ export const addStory = async (req, res) => {
     }
     const storyData = {
       caption,
-      image: imageUrl,
+
+      image: imageUrl ? imageUrl : '',
       date: new Date(),
     };
 
@@ -185,6 +184,9 @@ export const acceptFollowRequest = async (req, res) => {
   const userId = req.user._id; // Logged-in user (Receiver)
   const { id, type } = req.params; // Sender's ID (User who sent the follow request)
 
+  console.log("type",type);
+  
+
   try {
     if (type === 'following') {
       Request_Mode('following', 'following', req, res);
@@ -196,6 +198,8 @@ export const acceptFollowRequest = async (req, res) => {
       .status(200)
       .json({ success: true, message: 'Follow request accepted!' });
   } catch (error) {
+    console.log(error);
+    
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -212,7 +216,7 @@ export const getFeedPosts = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    const followedUserIds = (user.action || []) // Ensure it's an array
+    const followedUserIds = (user.action || [])
       .filter(action => action.follow === 'following')
       .map(action => action.userId?._id);
     console.log('followedUserIds', followedUserIds);
@@ -221,8 +225,8 @@ export const getFeedPosts = async (req, res) => {
       (await Post.find({
         user: { $in: followedUserIds.length ? followedUserIds : [] },
       })
-        .populate('user', 'fullName ')
-        .sort({ createdAt: -1 })) || []; // Ensure it's an array
+        .populate('user', 'fullName profilePic')
+        .sort({ createdAt: -1 })) || [];
 
     const updatedFollowedUsersPosts = followedUsersPosts.map(item => ({
       ...item._doc, // Spread existing post data
@@ -272,11 +276,11 @@ export const getFeedPosts = async (req, res) => {
 
     //console.log('allPublic_Postts', JSON.stringify(allPublic_Postts, null, 2));
 
+
     const allPosts = [...updatedFollowedUsersPosts, ...allPublic_Postts];
 
 
     console.log('allPosts', JSON.stringify(allPosts, null, 2));
-
 
     return res.status(200).json({ success: true, posts: allPosts });
   } catch (error) {
@@ -322,12 +326,14 @@ export const getStory = async (req, res) => {
 export const getDevelopers = async (req, res) => {
   const userId = req.user._id; // Get logged-in user's ID
   const { page = 1, limit = 4 } = req.query; // Default values
-  console.log("called");
+  console.log('called');
 
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(400).json({ success: false, message: 'User Not found' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'User Not found' });
     }
 
     const userSkills = user.field; // Get current user's skills
@@ -345,23 +351,20 @@ export const getDevelopers = async (req, res) => {
         _id: { $ne: userId, $nin: excludedUserIds },
         field: { $in: userSkills },
       },
-      "fullName email profilePic field _id" // <-- Select only these fields
+      'fullName email profilePic field _id' // <-- Select only these fields
     )
       .skip((page - 1) * limit)
       .limit(Number(limit));
 
-
     return res.status(200).json({
       success: true,
       developers: matchedUsers,
-      totalDevelopers // Send total count
+      totalDevelopers, // Send total count
     });
-
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export const searchtecStack = (req, res) => {
   const { searchkey } = req.params;
@@ -415,13 +418,18 @@ export const getDeveloperProfile = async (req, res) => {
   try {
     let postsWithLikeStatus = [];
 
+
     const userData = await User.findOne({ _id: devId }, "-password");
 
+
     if (!userData) {
-      return res.status(404).json({ success: false, message: "User Not Found" });
+      return res
+        .status(404)
+        .json({ success: false, message: 'User Not Found' });
     }
 
-    const postData = await Post.findOne({ user: devId }).populate("user");
+    const postData = await Post.findOne({ user: devId }).populate('user');
+
 
     var isFollowing = userData?.action?.some(
       (action) => action.userId.toString() === userId.toString() && action.follow === "following"
@@ -459,32 +467,38 @@ export const getDeveloperProfile = async (req, res) => {
 
 
 
+
     return res.status(200).json({
       success: true,
       user: userData,
       posts: postsWithLikeStatus,
       followingCount,
       followersCount,
+
       status: requestUserStatus,
       isYou: devId.toString() === userId.toString(),
-    });
 
+    });
   } catch (error) {
-    console.error("Error fetching profile:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error fetching profile:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
 
 export const getAccountInteractions = async (req, res) => {
-  const userId = req.user._id
+  const userId = req.user._id;
+
   try {
-    const user = await User.findById(userId).populate('action.userId').select('-password')
+    const user = await User.findById(userId)
+      .populate('action.userId')
+      .select('-password');
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: 'User not found' });
     }
+
     const interactedUsers = user.action
 
     console.log("interactedUsers", JSON.stringify(interactedUsers, null, 2))
@@ -596,5 +610,7 @@ export const DoPostLike = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 
