@@ -41,8 +41,10 @@ const App = () => {
 
   return (
     <div data-theme={theme} >
-    
-    {!["/", "/add-story", "/add-post","/chooseDeveloper","/InteractedUsersList"].includes(location.pathname) && <Navbar />}
+
+      {!["/", "/add-story", "/add-post", "/chooseDeveloper", "/InteractedUsersList"].includes(location.pathname) &&
+        !location.pathname.startsWith("/devProfile/") && <Navbar />}
+
 
 
       <Routes>

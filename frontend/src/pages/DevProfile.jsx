@@ -35,7 +35,7 @@ const DevProfile = () => {
 
 
     return (
-        <div className='pt-20 flex items-end justify-center'>
+        <div className='pt-20 flex items-end justify-center bg-gray-900'>
             <div className=' w-[80%] flex flex-col items-center justify-center gap-8 pb-5'>
                 <div className='w-full flex items-center justify-evenly gap-36 p-5'>
                     <div className='w-[50%] flex items-center justify-end'>
@@ -45,12 +45,12 @@ const DevProfile = () => {
                         }
 
                     </div>
-                    <div className='w-[50%] flex flex-col gap-8'>
+                    <div className='w-[50%] flex flex-col gap-8 text-white'>
                         <div>
                             <p className='text-[33px] font-extrabold m-0 p-0'>{developerDetails && developerDetails.fullName}</p>
                             <p className='text-[16px] font-extrabold m-0 p-0 italic'>{developerDetails && developerDetails.email}</p>
                         </div>
-                        <div className=' w-full flex justify-start items-center gap-11'>
+                        <div className=' w-full flex justify-start items-center gap-11 text-white'>
                             <p className='text-[19px] font-extrabold '>{developerposts && developerposts.length} post</p>
                             <p className='text-[19px] font-extrabold'>{followersCount} followers</p>
                             <p className='text-[19px] font-extrabold'>{followingCount} following</p>
@@ -86,9 +86,9 @@ const DevProfile = () => {
 
                                     {status === "requested" && (
                                         <button
-                                            className='flex items-center justify-center gap-2 bg-red-400 px-3 py-1 opacity-70 rounded-lg'
+                                            className='flex items-center justify-center gap-2 bg-red-600 px-3 py-1 opacity-70 rounded-lg'
                                         >
-                                            <Bookmark className='font-extrabold text-black' />
+                                            <Bookmark className='font-extrabold text-white' />
                                             <span className='font-extrabold'>already requested</span>
                                         </button>
                                     )}
@@ -96,9 +96,9 @@ const DevProfile = () => {
                                     {status === "sendRequest" && (
                                         <button
                                             onClick={() => followReuest(developerDetails._id, "request")}
-                                            className='flex items-center justify-center gap-2 bg-blue-400 px-3 py-1 opacity-70 rounded-lg'
+                                            className='flex items-center justify-center gap-2 bg-blue-600 px-3 py-1 opacity-70 rounded-lg'
                                         >
-                                            <AiOutlineUserAdd className='font-extrabold text-black' />
+                                            <AiOutlineUserAdd className='font-extrabold text-white' />
                                             <span className='font-extrabold'>request</span>
                                         </button>
                                     )}
@@ -129,7 +129,7 @@ const DevProfile = () => {
                     </div>
                 </div>
                 <div className='border border-bg border-gray-300 w-[60%] '></div>
-                <div className='flex items-center justify-center gap-28 pb-5'>
+                <div className='flex items-center justify-center gap-28 pb-5 text-white'>
                     <div className='flex flex-col gap-2'>
                         <p onClick={() => setactiveBar("post")} className='text-[19px] font-extrabold flex items-center justify-center gap-2'><IoGridOutline /> post</p>
                         {

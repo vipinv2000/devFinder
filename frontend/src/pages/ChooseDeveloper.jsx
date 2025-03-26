@@ -97,7 +97,7 @@ const ChooseDeveloper = () => {
                     exit="exit"
                 >
                     <div className="relative w-full">
-                        <div className="h-full w-28 p-2 bg-gradient-to-r from-[#0f0f0f] absolute rounded-lg"></div>
+                        <div className="opacity-65  h-full w-28 p-2 bg-gradient-to-r from-[#0f0f0f] absolute rounded-lg"></div>
                         <img
                             src={developersArray[currentIndex].profilePic}
                             alt="Pic"
@@ -132,7 +132,7 @@ const ChooseDeveloper = () => {
                                 </div>
                             ) : null}
                         </div>
-                        <div className="h-full w-28 p-2 bg-gradient-to-l from-[#0f0f0f] absolute top-0 right-0 rounded-lg"></div>
+                        <div className="opacity-65 h-full w-28 p-2 bg-gradient-to-l from-[#0f0f0f] absolute top-0 right-0 rounded-lg"></div>
                     </div>
                     <p className="w-full text-white mt-2 text-[33px] font-bold tracking-widest " style={{letterSpacing:"15px"}}>
                         {developersArray[currentIndex].fullName.toUpperCase()}
