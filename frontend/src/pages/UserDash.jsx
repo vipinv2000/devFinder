@@ -16,6 +16,7 @@ const UserDashboard = () => {
   const [selectedStories, setSelectedStories] = useState([]);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [refresh,setRefresh]=useState()
 
   useEffect(() => {
     fetchStories();
@@ -258,7 +259,7 @@ const UserDashboard = () => {
   ) : (
     posts.map((post) =>
       post.posts?.map((singlePost, index) => (
-        <Feedpost singlePost={singlePost} post={post} key={index} />
+        <Feedpost singlePost={singlePost} toggleRefresh={{ refresh, setRefresh }} post={post} key={index} />
       ))
     )
   )}

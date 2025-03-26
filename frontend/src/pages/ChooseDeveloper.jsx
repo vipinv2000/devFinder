@@ -85,11 +85,11 @@ const ChooseDeveloper = () => {
     };
 
     return (
-        <div className="pt-20 flex flex-col items-center h-screen justify-center rounded-lg">
+        <div className="pt-20 flex flex-col bg-gray-900 items-center h-screen justify-center rounded-lg">
             {developersArray.length > 0 ? (
                 <motion.div
                     key={developersArray[currentIndex]._id}
-                    className="relative card shadow-xl bg-opacity-40 bg-base-300 sm:p-6 p-4 text-center sm:w-[450px] w-80 text-black flex gap-1 rounded-lg"
+                    className="relative card shadow-2xl  bg-opacity-40 bg-gray-700 sm:p-9 p-4 text-center sm:w-[450px] w-80 text-black flex gap-1 rounded-lg"
                     variants={cardVariants}
                     custom={direction}
                     initial="enter"
@@ -97,7 +97,7 @@ const ChooseDeveloper = () => {
                     exit="exit"
                 >
                     <div className="relative w-full">
-                        <div className="h-full w-28 p-2 bg-gradient-to-r from-[#0f0f0f] absolute rounded-lg"></div>
+                        <div className="opacity-65  h-full w-28 p-2 bg-gradient-to-r from-[#0f0f0f] absolute rounded-lg"></div>
                         <img
                             src={developersArray[currentIndex].profilePic}
                             alt="Pic"
@@ -115,7 +115,7 @@ const ChooseDeveloper = () => {
                                 <div className="z-10">
                                     <button
                                         onClick={prevDeveloper}
-                                        className="px-4 py-2 text-white rounded-full text-2xl"
+                                        className="px-4 py-2 text-white rounded-full text-2xl hover:scale-150"
                                     >
                                         {"<"}
                                     </button>
@@ -125,63 +125,64 @@ const ChooseDeveloper = () => {
                                 <div className="h-full z-10">
                                     <button
                                         onClick={nextDeveloper}
-                                        className="px-4 py-2 text-white rounded-full text-2xl"
+                                        className="px-4 py-2 text-white rounded-full text-2xl hover:scale-150"
                                     >
                                         {">"}
                                     </button>
                                 </div>
                             ) : null}
                         </div>
-                        <div className="h-full w-28 p-2 bg-gradient-to-l from-[#0f0f0f] absolute top-0 right-0 rounded-lg"></div>
+                        <div className="opacity-65 h-full w-28 p-2 bg-gradient-to-l from-[#0f0f0f] absolute top-0 right-0 rounded-lg"></div>
                     </div>
-                    <p className="text-base-content/70 mt-2 text-[33px] font-bold tracking-widest space-x-5">
+                    <p className="w-full text-white mt-2 text-[33px] font-bold tracking-widest " style={{letterSpacing:"15px"}}>
                         {developersArray[currentIndex].fullName.toUpperCase()}
                     </p>
                     <div className="w-full h-auto flex items-end justify-evenly py-3">
                         <div>
-                            <button onClick={()=>{navigate(`/devProfile/${developersArray[currentIndex]._id}`)}} className="flex bg-accent items-center justify-center gap-2  p-3 rounded-full">
-                                <FiSend size={30} className="text-neutral" />
+                            <button onClick={()=>{navigate(`/devProfile/${developersArray[currentIndex]._id}`)}}
+                             className="shadow-md shadow-gray-700 hover:scale-110 flex bg-gray-900 items-center justify-center gap-2  p-3 rounded-full">
+                                <FiSend size={30} className="text-green-600 " />
                             </button>
                         </div>
                         <div>
                             <button
                                 onClick={removeDeveloper}
-                                className="flex bg-accent items-center justify-center gap-2 p-3 rounded-full"
+                                className="shadow-md shadow-gray-700  hover:scale-110 flex bg-gray-900 items-center justify-center gap-2 p-3 rounded-full"
                             >
-                                <FaXmark size={30} className="text-neutral" />
+                                <FaXmark size={30} className=" text-red-600" />
                             </button>
                         </div>
                     </div>
                     <div className="w-full flex text-primary-content/70">
-                        <p className="text-base-content">Skills :</p>
+                        <p className="text-white font-extrabold text-[17px]"style={{letterSpacing:"5px"}} >SKILLS </p>
                     </div>
 
                     {/* Skills Marquee Section */}
                     <div className="relative w-full mt-3 overflow-hidden">
                         {/* First Row - Left Scroll */}
                         <motion.div
-                            className="flex gap-4 whitespace-nowrap w-full"
+                            className="flex gap-6 whitespace-nowrap w-full"
                             initial={{ x: "100%" }}
                             animate={{ x: "-100%" }}
                             transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
                         >
                             {developersArray[currentIndex].field.concat(developersArray[currentIndex].field).map((item, index) => (
-                                <div key={index} className="opacity-85 py-1 px-3 bg-primary rounded-lg">
-                                    <h1 className="text-primary-content/70">{item}</h1>
+                                <div key={index} className="opacity-85 py-2 px-6 bg-gray-900 shadow-md shadow-gray-700 rounded-lg">
+                                    <h1 className="text-white font-extrabold">{item.toUpperCase()}</h1>
                                 </div>
                             ))}
                         </motion.div>
 
                         {/* Second Row - Right Scroll */}
                         <motion.div
-                            className="flex gap-4 whitespace-nowrap w-full mt-5"
+                            className="flex gap-6 whitespace-nowrap w-full mt-5"
                             initial={{ x: "-100%" }}
                             animate={{ x: "100%" }}
                             transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
                         >
                             {developersArray[currentIndex].field.concat(developersArray[currentIndex].field).map((item, index) => (
-                                <div key={index} className="opacity-85 py-1 px-3 bg-primary rounded-lg">
-                                    <h1 className="text-primary-content/70">{item}</h1>
+                                <div key={index} className="opacity-85 py-2 px-6 bg-gray-900 shadow-md shadow-gray-700 rounded-lg">
+                                    <h1 className="text-white font-extrabold">{item.toUpperCase()}</h1>
                                 </div>
                             ))}
                         </motion.div>

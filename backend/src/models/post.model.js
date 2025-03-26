@@ -29,7 +29,7 @@ const postSchema = new mongoose.Schema({
         {
           type: Schema.Types.ObjectId,
           default: [],
-        },
+        }
       ],
       isPrivate: {
         type: Boolean,

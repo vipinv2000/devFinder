@@ -4,11 +4,11 @@ import { techStack } from '../../utils/tecStacks.js';
 import Post from '../models/post.model.js';
 import User from '../models/user.model.js';
 import cloudinary from '../lib/cloudinary.js';
+import { json } from 'stream/consumers';
 
 export const addpost = async (req, res) => {
   const userId = req.user._id;
   const { caption, image, description, visibility } = req.body;
-  console.log('rfr', req.body);
 
   try {
     let imageUrl;
@@ -23,6 +23,7 @@ export const addpost = async (req, res) => {
       image: imageUrl,
       description,
       isPrivate: visibility == 'public' ? true : false,
+
       date: new Date(),
     };
 
@@ -51,16 +52,19 @@ export const addpost = async (req, res) => {
 export const addStory = async (req, res) => {
   const userId = req.user._id;
   const { caption, image } = req.body;
+
   console.log('req.body', req.body);
 
   try {
     let imageUrl;
     if (image) {
+
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
     const storyData = {
       caption,
+
       image: imageUrl ? imageUrl : '',
       date: new Date(),
     };
@@ -85,8 +89,13 @@ export const addStory = async (req, res) => {
 };
 
 export const requestFollow = async (req, res) => {
+  console.log("Hellooo");
+
   const userId = req.user._id;
-  const { id } = req.params; // ID of the user to follow
+  const { id, type } = req.params; // ID of the user to follow
+
+  console.log(userId, id, type);
+
 
   try {
     const sender = await User.findById(userId);
@@ -98,27 +107,38 @@ export const requestFollow = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    // Check if a follow request already exists
-    const existingIndex = sender.action.findIndex(
-      item => item.userId.toString() === id.toString()
-    );
-
-    if (existingIndex !== -1) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Follow request already sent' });
-    }
 
     // Add follow request for both users
-    sender.action.push({
-      userId: id,
-      follow: 'pending',
-    });
+    if (type === "request") {
+      sender.action.push({
+        userId: id,
+        follow: 'pending',
+      });
 
-    receiver.action.push({
-      userId: userId,
-      follow: 'requested',
-    });
+      receiver.action.push({
+        userId: userId,
+        follow: 'requested',
+      });
+    } else {
+      var sendeIndex = receiver.action.findIndex(index => index.userId.toString() === userId.toString())
+      var recivereIndex = sender.action.findIndex(index => index.userId.toString() === id.toString())
+
+      console.log("sendeIndex", sendeIndex, "recivereIndex", recivereIndex);
+
+    }
+
+    if (type === "followback") {
+      console.log("Hiiii", receiver);
+
+      sender.action[recivereIndex].follow = "following"
+      receiver.action[sendeIndex].follow = "following"
+    }
+
+    if (type === "unblock") {
+      sender.action[recivereIndex].follow = "following"
+      receiver.action[sendeIndex].follow = "following"
+    }
+
 
     await sender.save();
     await receiver.save();
@@ -127,6 +147,8 @@ export const requestFollow = async (req, res) => {
       .status(200)
       .json({ success: true, message: 'Successfully sent follow request' });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -162,6 +184,9 @@ export const acceptFollowRequest = async (req, res) => {
   const userId = req.user._id; // Logged-in user (Receiver)
   const { id, type } = req.params; // Sender's ID (User who sent the follow request)
 
+  console.log("type",type);
+  
+
   try {
     if (type === 'following') {
       Request_Mode('following', 'following', req, res);
@@ -173,6 +198,8 @@ export const acceptFollowRequest = async (req, res) => {
       .status(200)
       .json({ success: true, message: 'Follow request accepted!' });
   } catch (error) {
+    console.log(error);
+    
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -189,7 +216,7 @@ export const getFeedPosts = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    const followedUserIds = (user.action || []) 
+    const followedUserIds = (user.action || [])
       .filter(action => action.follow === 'following')
       .map(action => action.userId?._id);
     console.log('followedUserIds', followedUserIds);
@@ -199,32 +226,59 @@ export const getFeedPosts = async (req, res) => {
         user: { $in: followedUserIds.length ? followedUserIds : [] },
       })
         .populate('user', 'fullName profilePic')
-        .sort({ createdAt: -1 })) || []; 
+        .sort({ createdAt: -1 })) || [];
 
-   
+    const updatedFollowedUsersPosts = followedUsersPosts.map(item => ({
+      ...item._doc, // Spread existing post data
+      posts: item.posts.map(post => ({
+        ...post._doc, // Spread post data
+        isLiked: Array.isArray(post.like) ? post.like.includes(userId) : false, // Add isLiked property to each post
+      })),
+    }));
+
+
+    // console.log('followedUserIds', JSON.stringify(followedUsersPosts, null, 2));
 
     const publicPosts =
       (await Post.find({
         user: {
           $nin: followedUserIds.length ? followedUserIds : [],
-          $ne: userId, 
-        },
+          $ne: userId // Exclude the current user's posts
+        }
       })
-        .populate('user', 'fullName')
+        .populate('user', 'fullName ')
         .sort({ createdAt: -1 })) || [];
 
-  
+    console.log("Public Post", publicPosts);
+
+
+    //console.log('Pooooooooo', JSON.stringify(publicPosts, null, 2));
+    console.log("UserId", userId);
 
     const allPublic_Postts = publicPosts
-      .map(item => ({
-        ...item, 
-        posts: item.posts.filter(post => post.isPrivate === false), 
-      }))
+      .map(item => {
+        const plainItem = item.toObject(); // Convert to plain JS object
+        return {
+          ...plainItem, // Spread only necessary data
+          posts: plainItem.posts
+            .filter(post => post.isPrivate === false) // Keep only public posts
+            .map(post => ({
+              ...post, // Spread post data (already a plain object)
+              isLiked: Array.isArray(post.like)
+                ? post.like.map(id => id.toString()).includes(userId.toString()) // Convert ObjectIds to strings before checking
+                : false,
+            }))
+        };
+      })
       .filter(item => item.posts.length > 0);
 
-    
+    //console.log("Public Post  222", allPublic_Postts);
 
-    const allPosts = [...followedUsersPosts, ...allPublic_Postts];
+    //console.log('allPublic_Postts', JSON.stringify(allPublic_Postts, null, 2));
+
+
+    const allPosts = [...updatedFollowedUsersPosts, ...allPublic_Postts];
+
 
     console.log('allPosts', JSON.stringify(allPosts, null, 2));
 
@@ -255,9 +309,9 @@ export const getStory = async (req, res) => {
 
     const followedUsersStory = followedUserIds.length
       ? await Post.find({ user: { $in: followedUserIds } })
-          .select('story user')
-          .populate('user', 'fullName profilePic')
-          .sort({ createdAt: -1 })
+        .select('story user')
+        .populate('user', 'fullName profilePic')
+        .sort({ createdAt: -1 })
       : [];
 
     console.log('Followed Users Story:', followedUsersStory);
@@ -364,7 +418,9 @@ export const getDeveloperProfile = async (req, res) => {
   try {
     let postsWithLikeStatus = [];
 
-    const userData = await User.findOne({ _id: devId });
+
+    const userData = await User.findOne({ _id: devId }, "-password");
+
 
     if (!userData) {
       return res
@@ -374,35 +430,43 @@ export const getDeveloperProfile = async (req, res) => {
 
     const postData = await Post.findOne({ user: devId }).populate('user');
 
-    if (postData) {
-      var isFollowing = userData.action.some(
-        action =>
-          action.userId.toString() === userId.toString() &&
-          action.follow === 'following'
-      );
-      const filteredPosts = postData.posts.filter(
-        post => !post.isPrivate || isFollowing
-      );
+
+    var isFollowing = userData?.action?.some(
+      (action) => action.userId.toString() === userId.toString() && action.follow === "following"
+    ) || false;
+
+
+
+    if (postData?.posts) {
+      const filteredPosts = postData.posts.filter(post => !post.isPrivate || isFollowing);
       postsWithLikeStatus = filteredPosts.map(post => ({
         ...post.toObject(),
-        isLiked: post.like.includes(userId),
+        isLiked: Array.isArray(post.like) ? post.like.includes(userId) : false,
+        postCollectionId: postData._id,
       }));
     }
 
-    console.log('Developer Data:', postData);
+    console.log("Developer Data:", postData);
 
-    const followingCount = userData.action.filter(
-      item => item.follow === 'pending' || item.follow === 'following'
-    ).length;
+    const followingCount = userData.action?.filter(
+      (item) => item.follow === "pending" || item.follow === "following"
+    ).length || 0;
 
-    console.log('Following Count:', followingCount);
+    console.log("Following Count:", followingCount);
 
     const followersCount = await User.countDocuments({
-      'action.userId': devId,
-      'action.follow': 'following',
+      "action.userId": devId,
+      "action.follow": { $in: ["following", "requested"] }
     });
 
-    console.log('Followers Count:', followersCount);
+    console.log("Followers Count:", followersCount);
+    var requestUserStatus = userData?.action
+      ?.find(item => item.userId.toString() === userId.toString())?.follow || 'sendRequest';
+
+    console.log("requestUserStatus:", requestUserStatus);
+
+
+
 
     return res.status(200).json({
       success: true,
@@ -410,7 +474,10 @@ export const getDeveloperProfile = async (req, res) => {
       posts: postsWithLikeStatus,
       followingCount,
       followersCount,
-      isfriend: isFollowing ? true : false,
+
+      status: requestUserStatus,
+      isYou: devId.toString() === userId.toString(),
+
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -418,8 +485,10 @@ export const getDeveloperProfile = async (req, res) => {
   }
 };
 
+
 export const getAccountInteractions = async (req, res) => {
   const userId = req.user._id;
+
   try {
     const user = await User.findById(userId)
       .populate('action.userId')
@@ -429,47 +498,119 @@ export const getAccountInteractions = async (req, res) => {
         .status(404)
         .json({ success: false, message: 'User not found' });
     }
-    const interactedUsers = user.action;
 
-    console.log('interactedUsers', JSON.stringify(interactedUsers, null, 2));
+    const interactedUsers = user.action
 
-    return res.status(200).json({ success: true, interactedUsers });
+    console.log("interactedUsers", JSON.stringify(interactedUsers, null, 2))
+
+
+    return res.status(200).json({ success: true, interactedUsers })
+
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+
+  }
+}
+
+export const getfollowingDevelopers = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user._id
+  try {
+
+    const Useres = await User.findOne({ _id: id }).populate("action.userId")
+
+    const GetFollwingdev = Useres.action.filter(item => (
+      item.userId._id.toString() != id.toString() && item.follow === "following" || item.follow === "pending"
+    ));
+
+    console.log("GetFollwingdev", GetFollwingdev);
+
+
+    return res.status(200).json({ success: true, GetFollwingdev })
+
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
   }
-};
-export const likeFunction = async (req, res) => {
+}
+
+export const getfollowers = async (req, res) => {
+  const { id } = req.params;  // The user whose followers we need
+  const userId = req.user._id
   try {
-    const { postId } = req.params;
-    const userId = req.user.id; // Extract user ID from token
+    console.log("User ID:", id);
 
-    // Find the document containing the post
-    const postDocument = await Post.findOne({ 'posts._id': postId });
+    // Fetch all users
+    const allUsers = await User.find({}, "-password  -field")
 
-    if (!postDocument) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
+    // Find users who have sent a follow request to the given user
+    const followers = [];
+    const filterfollowers = []
 
-    // Find the specific post within the array
-    const post = postDocument.posts.find((p) => p._id.toString() === postId);
+    allUsers.forEach(item => {
+      item.action.forEach(actionItem => {
+        if (actionItem.userId.toString() === id && actionItem.userId.toString() != userId.toString()) {
+          followers.push(item);
+        }
+      });
+    });
 
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
+    followers.forEach(item => {
+      item.action.forEach(actionItem => {
+        if (actionItem.follow === "following" || actionItem.follow === "requested") {
+          filterfollowers.push(item);
+        }
+      });
+    });
 
-    const likeIndex = post.like.indexOf(userId);
 
-    if (likeIndex === -1) {
-      // Add user ID to likes
-      post.like.push(userId);
-    } else {
-      // Remove user ID from likes
-      post.like.splice(likeIndex, 1);
-    }
 
-    await postDocument.save();
-    res.status(200).json({ message: 'Like updated',success:true, likes: post.like.length });
+    console.log("Followers:", filterfollowers);
+
+    return res.status(200).json({ success: true, followers });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const DoPostLike = async (req, res) => {
+  const { postId, collectionId } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const DevPost = await Post.findOne({ _id: collectionId });
+
+    if (!DevPost) {
+      return res.status(404).json({ success: false, message: "Collection not found" });
+    }
+
+
+    const post = DevPost.posts.find(post => post._id.toString() === postId.toString());
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+
+
+    const likeIndex = post.like.findIndex(like => like.toString() === userId.toString());
+
+    if (likeIndex === -1) {
+
+      post.like.push(userId);
+    } else {
+
+      post.like = post.like.filter(like => like.toString() !== userId.toString());
+    }
+
+
+    await DevPost.save();
+
+    return res.status(200).json({ success: true, message: "Like status updated", likes: post.like.length });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+
