@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../lib/axios";
 import { MessageCircle, Check, X, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useChatStore } from "../store/useChatStore";
 
 const InteractedUsersList = () => {
   const [interactedUsers, setInteractedUsers] = useState([]);
+  const {  selectedUser, setSelectedUser } = useChatStore();
+  const navigate=useNavigate()
 
   const fetchInteractedUsers = async () => {
     try {
@@ -26,6 +30,7 @@ const InteractedUsersList = () => {
       console.error("Error updating follow request:", error);
     }
   }
+  
 
   useEffect(() => {
     fetchInteractedUsers();
@@ -48,8 +53,8 @@ const InteractedUsersList = () => {
             <h3 className="text-lg font-semibold">{user.userId.fullName}</h3>
             <p className="text-gray-500 text-sm">{user.userId.email}</p>
             {user.follow && (
-             <p className={`font-medium mt-1 ${user.follow === "blocked" ? "text-red-500" : "text-blue-500"}`}>
-             {user.follow}
+             <p className={`font-medium mt-1 ${user.follow === "blocked"||user.follow === "rejected" ? "text-red-500" : "text-blue-500"}`}>
+             {user.follow.toUpperCase()}
            </p>
            
             )}
@@ -57,7 +62,12 @@ const InteractedUsersList = () => {
             {/* Dynamic Actions */}
             <div className="mt-4">
               {user.follow === "following" && (
-               <button className="p-2 bg-blue-100 hover:bg-blue-200 rounded-full">
+               <button className="p-2 bg-blue-100 hover:bg-blue-200 rounded-full"  onClick={()=>{
+                console.log("user",user);
+                
+                setSelectedUser(user.userId)
+                navigate('/chat')
+            }} >
                <MessageSquare className="w-6 h-6 text-blue-500" />
              </button>
               )}

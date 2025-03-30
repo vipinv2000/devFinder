@@ -246,7 +246,7 @@ export const getFeedPosts = async (req, res) => {
           $ne: userId // Exclude the current user's posts
         }
       })
-        .populate('user', 'fullName ')
+        .populate('user', 'fullName profilePic')
         .sort({ createdAt: -1 })) || [];
 
     console.log("Public Post", publicPosts);
@@ -412,10 +412,13 @@ export const searchtecStack = (req, res) => {
 };
 
 export const getDeveloperProfile = async (req, res) => {
-  const { devId } = req.params;
+  let { devId } = req.params;
   const userId = req.user._id;
-
+  console.log("dev",devId);
+  
   try {
+
+    if(devId=="myProfile") devId=userId
     let postsWithLikeStatus = [];
 
 

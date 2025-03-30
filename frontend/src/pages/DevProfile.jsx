@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { IoGridOutline } from "react-icons/io5";
 import { GiShadowFollower } from "react-icons/gi";
 import { SlUserFollowing } from "react-icons/sl";
@@ -9,6 +9,8 @@ import { FaRegMessage } from "react-icons/fa6";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { Bookmark, GitPullRequestClosed, Handshake, TriangleAlert } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
+import { FaCommentDots, FaHome, FaUser, FaUsers } from 'react-icons/fa';
+import { MdAddBox } from 'react-icons/md';
 
 const DevProfile = () => {
     const { followingCount, followersCount, developerDetails, developerposts, status, isYou, fetchDeveloperDetailes,
@@ -18,6 +20,8 @@ const DevProfile = () => {
     const { devId } = useParams();
     const [activeBar, setactiveBar] = useState("post")
     const navigate = useNavigate()
+    const [showFooter, setShowFooter] = useState(false);
+    
     const [refresh, setRefresh] = useState(false)
 
     const followReuest = async (id, type) => {
@@ -25,6 +29,16 @@ const DevProfile = () => {
         fetchDeveloperDetailes(devId);
         setRefresh(!refresh);
     }
+
+        const handleMouseMove = (event) => {
+            setShowFooter(event.clientY > window.innerHeight - 60);
+          };
+        
+          useEffect(() => {
+            window.addEventListener("mousemove", handleMouseMove);
+            return () => window.removeEventListener("mousemove", handleMouseMove);
+          }, []);
+    
 
 
     useEffect(() => {
@@ -169,7 +183,7 @@ const DevProfile = () => {
                             ))
                         ) : (
                             <div>
-                                <h1>No Post Found</h1>
+                                <h1 className='text-gray-300'>No Post Found</h1>
                             </div>
                         )
                     )}
@@ -204,7 +218,7 @@ const DevProfile = () => {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="text-black text-center ">No followers  found</div>
+                                    <div className="text-gray-300' text-center ">No followers  found</div>
                                 )
                             }
 
@@ -239,7 +253,7 @@ const DevProfile = () => {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="text-black text-center ">No following developers found</div>
+                                    <div className="text-gray-300    text-center ">No following developers found</div>
                                 )}
                             </div>
                         )}
@@ -248,6 +262,31 @@ const DevProfile = () => {
 
                 </div>
             </div>
+                        {/* Footer Navigation Bar */}
+                              <div
+                          className={`fixed bottom-0 left-0 right-0 bg-white p-4 flex justify-evenly rounded-3xl items-center transition-transform duration-300 mx-4 my-2 ${
+                            showFooter ? "translate-y-0" : "translate-y-[110%]"
+                          }`}
+                        >
+                                <Link to="/" className="text-black text-2xl hover:text-blue-300">
+                                  <FaHome />
+                                </Link>
+                                <Link to="/chat" className="text-black text-2xl hover:text-blue-300">
+                                  <FaCommentDots />
+                                </Link>
+                                <Link
+                                  to="/add-post"
+                                  className="bg-blue-100 text-black p-3 rounded-full shadow-lg text-4xl hover:bg-green-300"
+                                >
+                                  <MdAddBox />
+                                </Link>
+                                <Link to="/InteractedUsersList" className="text-black text-2xl hover:text-blue-300">
+                                  <FaUsers />
+                                </Link>
+                                <Link to="/devProfile/myProfile" className="text-black text-2xl hover:text-blue-300">
+                                  <FaUser />
+                                </Link>
+                              </div>
         </div >
 
     )

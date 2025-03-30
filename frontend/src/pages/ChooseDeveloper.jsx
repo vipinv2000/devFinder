@@ -4,14 +4,27 @@ import { motion } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
 import { FiSend } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { FaCommentDots, FaHome, FaUser, FaUsers } from "react-icons/fa";
+import { MdAddBox } from "react-icons/md";
 
 const ChooseDeveloper = () => {
     const { developersList = [], getDeveloperToDisplay, totalDevelopers = 0 } = useAuthStore();
     const [currentPage, setCurrentPage] = useState(1);
     const [allDeveloperList, setAllDeveloperList] = useState(new Map());
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [showFooter, setShowFooter] = useState(false);
     const [direction, setDirection] = useState(1); // 1 for forward, -1 for backward
     const navigate = useNavigate()
+
+    const handleMouseMove = (event) => {
+        setShowFooter(event.clientY > window.innerHeight - 60);
+      };
+    
+      useEffect(() => {
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+      }, []);
 
     useEffect(() => {
         getDeveloperToDisplay(currentPage);
@@ -85,7 +98,7 @@ const ChooseDeveloper = () => {
     };
 
     return (
-        <div className="pt-20 flex flex-col bg-gray-900 items-center h-screen justify-center rounded-lg">
+        <div className="pt-20 flex flex-col bg-gray-900 items-center h-screen justify-center    ">
             {developersArray.length > 0 ? (
                 <motion.div
                     key={developersArray[currentIndex]._id}
@@ -189,8 +202,33 @@ const ChooseDeveloper = () => {
                     </div>
                 </motion.div>
             ) : (
-                <p>No developers found.</p>
+                <p className="text-gray-400">No developers found.</p>
             )}
+            {/* Footer Navigation Bar */}
+                  <div
+              className={`fixed bottom-0 left-0 right-0 bg-white p-4 flex justify-evenly rounded-3xl items-center transition-transform duration-300 mx-4 my-2 ${
+                showFooter ? "translate-y-0" : "translate-y-[110%]"
+              }`}
+            >
+                    <Link to="/" className="text-black text-2xl hover:text-blue-300">
+                      <FaHome />
+                    </Link>
+                    <Link to="/chat" className="text-black text-2xl hover:text-blue-300">
+                      <FaCommentDots />
+                    </Link>
+                    <Link
+                      to="/add-post"
+                      className="bg-blue-100 text-black p-3 rounded-full shadow-lg text-4xl hover:bg-green-300"
+                    >
+                      <MdAddBox />
+                    </Link>
+                    <Link to="/InteractedUsersList" className="text-black text-2xl hover:text-blue-300">
+                      <FaUsers />
+                    </Link>
+                    <Link to="/devProfile/myProfile" className="text-black text-2xl hover:text-blue-300">
+                      <FaUser />
+                    </Link>
+                  </div>
         </div>
     );
 };

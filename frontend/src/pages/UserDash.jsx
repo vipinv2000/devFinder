@@ -235,7 +235,7 @@ const UserDashboard = () => {
     <p className="text-gray-300 italic">No new stories</p>
   ) : (
     stories.map((story, index) => (
-      <div key={index} className="flex flex-col items-center cursor-pointer" onClick={() => viewStory(index)}>
+      <div key={index} className="flex flex-col items-center cursor-pointer overflow-hidden " onClick={() => viewStory(index)}>
         <div className="relative w-20 h-20 rounded-full p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500">
           <img
             src={story.image || story.userProfilePic}
@@ -293,7 +293,7 @@ const UserDashboard = () => {
         <Link to="/InteractedUsersList" className="text-black text-2xl hover:text-blue-300">
           <FaUsers />
         </Link>
-        <Link to="/profile" className="text-black text-2xl hover:text-blue-300">
+        <Link to="/devProfile/myProfile" className="text-black text-2xl hover:text-blue-300">
           <FaUser />
         </Link>
       </div>

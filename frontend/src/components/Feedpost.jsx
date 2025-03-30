@@ -5,6 +5,8 @@ import { assets } from '../../../frontend/src/assets/assets.js';
 import { useAuthStore } from '../store/useAuthStore.js';
 
 const Feedpost = ({ singlePost, post, isprofile = false, toggleRefresh }) => {
+  console.log("post",post);
+  
   const { Do_User_Post_Like } = useAuthStore();
 
   // Initialize local state based on the post's current like status
@@ -40,7 +42,7 @@ const Feedpost = ({ singlePost, post, isprofile = false, toggleRefresh }) => {
         {!isprofile && post?.user && (
           <div className="flex items-center gap-3">
             <img
-              src={post?.user?.profilePic || "https://via.placeholder.com/40"}
+              src={post?.user?.profilePic || "/avatar.png"}
               alt="user"
               className="w-12 h-12 rounded-full border border-gray-600"
             />
@@ -57,18 +59,20 @@ const Feedpost = ({ singlePost, post, isprofile = false, toggleRefresh }) => {
 
         {/* Private Post Indicator */}
         {singlePost.isPrivate && (
-          <div className="flex items-center text-green-400 mt-2">
+         <div className='flex justify-end -mt-11' >
+           <div className="flex items-center text-green-400 mt-2">
             🔒 <span className="ml-1 text-sm">Private Post</span>
           </div>
+         </div>
         )}
 
         {/* Post Image */}
-
+       { singlePost.image !='' ?
         <img
           src={singlePost.image}
           alt="post"
-          className="w-full h-auto max-h-[500px] rounded-lg object-contain"
-        />
+          className="w-full h-auto max-h-[500px] rounded-lg object-contain mt-3"
+        />:''}
 
 
         {!isprofile && <p className="text-xl font-extrabold mt-3 text-blue-400">{singlePost.caption}</p>}
